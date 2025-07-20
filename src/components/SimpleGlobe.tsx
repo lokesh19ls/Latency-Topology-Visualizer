@@ -99,8 +99,9 @@ const SimpleGlobe: React.FC = () => {
 
   // Only create the globe instance once
   useEffect(() => {
-    if (globeEl.current && !globeRef.current) {
-      globeRef.current = new (Globe as any)(globeEl.current)
+    const el = globeEl.current;
+    if (el && !globeRef.current) {
+      globeRef.current = new (Globe as any)(el)
         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
         .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
         .width(window.innerWidth)
@@ -136,7 +137,7 @@ const SimpleGlobe: React.FC = () => {
     }
     // Clean up on unmount
     return () => {
-      if (globeEl.current) globeEl.current.replaceChildren();
+      if (el) el.replaceChildren();
       globeRef.current = null;
     };
   }, []);

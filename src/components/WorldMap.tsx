@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame, useLoader } from '@react-three/fiber';
+import React, { useRef, useMemo, useEffect } from 'react';
+import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber';
 import { OrbitControls, Stars, Text, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../store/useStore';
 import { latLngTo3D } from '../lib/dataService';
 import { TextureLoader } from 'three';
+import { ExchangeServer, CloudRegion, LatencyData } from '../types';
 
 // Earth component
 const Earth: React.FC = () => {
@@ -39,15 +40,15 @@ const Grid: React.FC<{ showGrid: boolean }> = ({ showGrid }) => {
 
 // Exchange server marker component
 const ExchangeMarker: React.FC<{
-  server: any;
+  server: ExchangeServer;
   isSelected: boolean;
   isHovered: boolean;
   setSelectedServer: (id: string | null) => void;
   setHoveredServer: (id: string | null) => void;
 }> = ({ server, isSelected, isHovered, setSelectedServer, setHoveredServer }) => {
   const meshRef = useRef<THREE.Mesh>(null);
-  const [position] = useMemo(() => {
-    return [latLngTo3D(server.location.lat, server.location.lng, 1.02)];
+  const position = useMemo(() => {
+    return latLngTo3D(server.location.lat, server.location.lng, 1.02);
   }, [server.location.lat, server.location.lng]);
 
   const getProviderColor = (provider: string) => {
@@ -90,9 +91,9 @@ const ExchangeMarker: React.FC<{
 };
 
 // Cloud region marker component
-const CloudRegionMarker: React.FC<{ region: any }> = ({ region }) => {
-  const [position] = useMemo(() => {
-    return [latLngTo3D(region.location.lat, region.location.lng, 1.01)];
+const CloudRegionMarker: React.FC<{ region: CloudRegion }> = ({ region }) => {
+  const position = useMemo(() => {
+    return latLngTo3D(region.location.lat, region.location.lng, 1.01);
   }, [region.location.lat, region.location.lng]);
 
   return (
@@ -115,23 +116,18 @@ const CloudRegionMarker: React.FC<{ region: any }> = ({ region }) => {
 };
 
 // Latency connection line component
-const LatencyConnection: React.FC<{
-  connection: any;
-  servers: any[];
-  getLatencyColor: (latency: number) => string;
-}> = ({ connection, servers, getLatencyColor }) => {
+const LatencyConnection: React.FC<{ connection: LatencyData; servers: ExchangeServer[]; getLatencyColor: (latency: number) => string }> = ({ connection, servers, getLatencyColor }) => {
   const fromServer = servers.find(s => s.id === connection.fromServerId);
   const toServer = servers.find(s => s.id === connection.toServerId);
 
-  if (!fromServer || !toServer) return null;
+  const fromPos = useMemo(() => {
+    return fromServer ? latLngTo3D(fromServer.location.lat, fromServer.location.lng, 1.02) : null;
+  }, [fromServer]);
+  const toPos = useMemo(() => {
+    return toServer ? latLngTo3D(toServer.location.lat, toServer.location.lng, 1.02) : null;
+  }, [toServer]);
 
-  const [fromPos] = useMemo(() => {
-    return [latLngTo3D(fromServer.location.lat, fromServer.location.lng, 1.02)];
-  }, [fromServer.location.lat, fromServer.location.lng]);
-
-  const [toPos] = useMemo(() => {
-    return [latLngTo3D(toServer.location.lat, toServer.location.lng, 1.02)];
-  }, [toServer.location.lat, toServer.location.lng]);
+  if (!fromServer || !toServer || !fromPos || !toPos) return null;
 
   const color = getLatencyColor(connection.latency);
   const opacity = connection.status === 'high' ? 0.8 : 0.4;
@@ -149,9 +145,9 @@ const LatencyConnection: React.FC<{
 
 // Scene component that contains all 3D elements
 const Scene: React.FC<{
-  servers: any[];
-  latencyData: any[];
-  cloudRegions: any[];
+  servers: ExchangeServer[];
+  latencyData: LatencyData[];
+  cloudRegions: CloudRegion[];
   selectedServer: string | null;
   hoveredServer: string | null;
   visualizationSettings: any;
