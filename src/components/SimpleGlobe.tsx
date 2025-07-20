@@ -100,7 +100,7 @@ const SimpleGlobe: React.FC = () => {
   // Only create the globe instance once
   useEffect(() => {
     if (globeEl.current && !globeRef.current) {
-      globeRef.current = new Globe(globeEl.current)
+      globeRef.current = new (Globe as any)(globeEl.current)
         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
         .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
         .width(window.innerWidth)

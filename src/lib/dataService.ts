@@ -316,7 +316,7 @@ export async function getCloudflareLatencyData(): Promise<LatencyData[]> {
           timestamp: now,
           status,
         });
-      } catch (e) {
+      } catch {
         // fallback to mock value if error
         data.push({
           id: `${servers[i].id}-${servers[j].id}`,
@@ -334,9 +334,9 @@ export async function getCloudflareLatencyData(): Promise<LatencyData[]> {
 
 export async function fetchMockApiLatencyData(): Promise<LatencyData[]> {
   const res = await fetch('/api/latency');
-  const apiData = await res.json();
+  const apiData: Array<{ from: string; to: string; latency: number }> = await res.json();
   const now = Date.now();
-  return apiData.map((item: any, idx: number) => ({
+  return apiData.map((item, idx) => ({
     id: `mock-${item.from}-${item.to}-${now}-${idx}`,
     fromServerId: item.from,
     toServerId: item.to,
