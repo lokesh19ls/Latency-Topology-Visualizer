@@ -2,13 +2,10 @@
 
 import React, { useState, useMemo } from 'react';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   Area,
   AreaChart,
@@ -18,7 +15,7 @@ import { useStore } from '../store/useStore';
 import { BarChart3, TrendingUp, Clock } from 'lucide-react';
 
 const HistoricalChart: React.FC = () => {
-  const { historicalData, visualizationSettings, selectedServer } = useStore();
+  const { historicalData, visualizationSettings } = useStore();
   const [selectedPair, setSelectedPair] = useState<string>('');
 
   const chartData = useMemo(() => {
@@ -42,13 +39,13 @@ const HistoricalChart: React.FC = () => {
     return historicalData.find(d => d.serverPair === selectedPair);
   }, [selectedPair, historicalData]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: unknown; label?: string }) => {
+    if (active && Array.isArray(payload) && payload.length && typeof label === 'string') {
       return (
         <div className="bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg border">
           <p className="text-gray-600 text-sm">{`Time: ${label}`}</p>
           <p className="text-blue-600 font-medium">
-            {`Latency: ${payload[0].value}ms`}
+            {`Latency: ${(payload[0] as { value: number }).value}ms`}
           </p>
         </div>
       );

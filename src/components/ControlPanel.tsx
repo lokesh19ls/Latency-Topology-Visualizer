@@ -2,14 +2,12 @@
 
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { 
-  Settings, 
-  Eye, 
-  EyeOff, 
-  RotateCcw, 
-  Grid3X3, 
-  Activity, 
-  Server, 
+import {
+  Settings,
+  Eye,
+  RotateCcw,
+  Activity,
+  Server,
   Globe,
   Filter,
   Search,
@@ -39,7 +37,7 @@ const ControlPanel: React.FC = () => {
   const [exchangeSearch, setExchangeSearch] = useState('');
 
   const uniqueExchanges = [...new Set(exchangeServers.map(s => s.name))];
-  const uniqueProviders = [...new Set(exchangeServers.map(s => s.cloudProvider))];
+  const uniqueProviders = [...new Set(exchangeServers.map(s => s.cloudProvider))] as Array<'AWS' | 'GCP' | 'Azure'>;
 
   const filteredExchanges = uniqueExchanges.filter(exchange =>
     exchange.toLowerCase().includes(exchangeSearch.toLowerCase())
@@ -72,8 +70,8 @@ const ControlPanel: React.FC = () => {
           Controls
         </h2>
         <button
-          onClick={() => updateVisualizationSettings({ 
-            theme: visualizationSettings.theme === 'dark' ? 'light' : 'dark' 
+          onClick={() => updateVisualizationSettings({
+            theme: visualizationSettings.theme === 'dark' ? 'light' : 'dark'
           })}
           className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
         >
@@ -125,7 +123,7 @@ const ControlPanel: React.FC = () => {
             <input
               type="checkbox"
               checked={visualizationSettings.showRealTime}
-              onChange={(e) => updateVisualizationSettings({ showRealTime: e.target.checked })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateVisualizationSettings({ showRealTime: e.target.checked })}
               className="rounded"
             />
             <span className="text-sm">Real-time Latency</span>
@@ -134,7 +132,7 @@ const ControlPanel: React.FC = () => {
             <input
               type="checkbox"
               checked={visualizationSettings.showHistorical}
-              onChange={(e) => updateVisualizationSettings({ showHistorical: e.target.checked })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateVisualizationSettings({ showHistorical: e.target.checked })}
               className="rounded"
             />
             <span className="text-sm">Historical Data</span>
@@ -143,7 +141,7 @@ const ControlPanel: React.FC = () => {
             <input
               type="checkbox"
               checked={visualizationSettings.showRegions}
-              onChange={(e) => updateVisualizationSettings({ showRegions: e.target.checked })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateVisualizationSettings({ showRegions: e.target.checked })}
               className="rounded"
             />
             <span className="text-sm">Cloud Regions</span>
@@ -176,9 +174,9 @@ const ControlPanel: React.FC = () => {
             <label key={exchange} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={visualizationSettings.selectedExchanges.length === 0 || 
+                checked={visualizationSettings.selectedExchanges.length === 0 ||
                          visualizationSettings.selectedExchanges.includes(exchange)}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const current = visualizationSettings.selectedExchanges;
                   const newSelection = e.target.checked
                     ? current.length === 0 ? [] : current.filter(x => x !== exchange)
@@ -204,11 +202,11 @@ const ControlPanel: React.FC = () => {
             <label key={provider} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={visualizationSettings.selectedProviders.includes(provider as any)}
-                onChange={(e) => {
+                checked={visualizationSettings.selectedProviders.includes(provider)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const current = visualizationSettings.selectedProviders;
                   const newSelection = e.target.checked
-                    ? [...current, provider as any]
+                    ? [...current, provider]
                     : current.filter(p => p !== provider);
                   updateVisualizationSettings({ selectedProviders: newSelection });
                 }}
@@ -231,7 +229,7 @@ const ControlPanel: React.FC = () => {
             <input
               type="number"
               value={visualizationSettings.latencyRange.min}
-              onChange={(e) => updateVisualizationSettings({
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateVisualizationSettings({
                 latencyRange: {
                   ...visualizationSettings.latencyRange,
                   min: parseInt(e.target.value) || 0
@@ -244,7 +242,7 @@ const ControlPanel: React.FC = () => {
             <input
               type="number"
               value={visualizationSettings.latencyRange.max}
-              onChange={(e) => updateVisualizationSettings({
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateVisualizationSettings({
                 latencyRange: {
                   ...visualizationSettings.latencyRange,
                   max: parseInt(e.target.value) || 1000
@@ -268,7 +266,7 @@ const ControlPanel: React.FC = () => {
             <input
               type="checkbox"
               checked={mapControls.autoRotate}
-              onChange={(e) => updateMapControls({ autoRotate: e.target.checked })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateMapControls({ autoRotate: e.target.checked })}
               className="rounded"
             />
             <span className="text-sm">Auto Rotate</span>
@@ -277,7 +275,7 @@ const ControlPanel: React.FC = () => {
             <input
               type="checkbox"
               checked={mapControls.showGrid}
-              onChange={(e) => updateMapControls({ showGrid: e.target.checked })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateMapControls({ showGrid: e.target.checked })}
               className="rounded"
             />
             <span className="text-sm">Show Grid</span>
@@ -286,7 +284,7 @@ const ControlPanel: React.FC = () => {
             <input
               type="checkbox"
               checked={mapControls.showAxis}
-              onChange={(e) => updateMapControls({ showAxis: e.target.checked })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateMapControls({ showAxis: e.target.checked })}
               className="rounded"
             />
             <span className="text-sm">Show Axis</span>
@@ -299,7 +297,7 @@ const ControlPanel: React.FC = () => {
         <h3 className="text-sm font-medium mb-3">Time Range</h3>
         <select
           value={visualizationSettings.timeRange}
-          onChange={(e) => updateVisualizationSettings({ timeRange: e.target.value as any })}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateVisualizationSettings({ timeRange: e.target.value as '1h' | '24h' | '7d' | '30d' })}
           className="w-full px-3 py-2 bg-white/10 rounded text-sm"
         >
           <option value="1h">Last Hour</option>
@@ -311,7 +309,7 @@ const ControlPanel: React.FC = () => {
 
       {/* Refresh Button */}
       <button
-        onClick={() => {
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
           // Simulate refresh by updating metrics
           updatePerformanceMetrics({
             lastUpdate: Date.now(),

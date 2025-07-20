@@ -5,7 +5,6 @@ import { useStore } from '../store/useStore';
 import { MapPin, Cloud, Zap, Info } from 'lucide-react';
 
 const Legend: React.FC = () => {
-  const { getLatencyColor } = useStore();
 
   return (
     <div className="absolute top-4 right-4 z-10 bg-white/10 backdrop-blur-md rounded-lg p-4 text-white w-64">

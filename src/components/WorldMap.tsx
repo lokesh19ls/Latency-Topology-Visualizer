@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { useStore } from '../store/useStore';
 import { latLngTo3D } from '../lib/dataService';
 import { TextureLoader } from 'three';
-import { ExchangeServer, CloudRegion, LatencyData } from '../types';
+import { ExchangeServer, CloudRegion, LatencyData, VisualizationSettings } from '../types';
 
 // Earth component
 const Earth: React.FC = () => {
@@ -150,7 +150,7 @@ const Scene: React.FC<{
   cloudRegions: CloudRegion[];
   selectedServer: string | null;
   hoveredServer: string | null;
-  visualizationSettings: any;
+  visualizationSettings: VisualizationSettings;
   showGrid: boolean;
   setSelectedServer: (id: string | null) => void;
   setHoveredServer: (id: string | null) => void;
@@ -235,7 +235,7 @@ const WorldMap: React.FC = () => {
           cloudRegions={cloudRegions}
           selectedServer={selectedServer}
           hoveredServer={hoveredServer}
-          visualizationSettings={visualizationSettings}
+          visualizationSettings={visualizationSettings as VisualizationSettings}
           showGrid={showGrid}
           setSelectedServer={setSelectedServer}
           setHoveredServer={setHoveredServer}

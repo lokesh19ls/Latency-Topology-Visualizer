@@ -1,7 +1,14 @@
 import React, { useEffect, useRef } from 'react';
-import Globe from 'globe.gl';
+import Globe, { GlobeInstance } from 'globe.gl';
 import * as THREE from 'three';
 import { useStore } from '../store/useStore';
+
+interface GlobePoint {
+  type: string;
+  color: string;
+  label: string;
+  size?: number;
+}
 
 const providerColor = (provider: string) => {
   switch (provider) {
@@ -47,7 +54,7 @@ const AXIS_NAME = 'globe-axes-helper';
 
 const SimpleGlobe: React.FC = () => {
   const globeEl = useRef<HTMLDivElement>(null);
-  const globeRef = useRef<any>(null);
+  const globeInstance = useRef<GlobeInstance | null>(null);
   const {
     exchangeServers,
     cloudRegions,
@@ -100,8 +107,8 @@ const SimpleGlobe: React.FC = () => {
   // Only create the globe instance once
   useEffect(() => {
     const el = globeEl.current;
-    if (el && !globeRef.current) {
-      globeRef.current = new (Globe as any)(el)
+    if (el && !globeInstance.current) {
+      globeInstance.current = new (Globe as unknown as { new (el: HTMLElement): GlobeInstance })(el)
         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
         .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
         .width(window.innerWidth)
@@ -109,43 +116,50 @@ const SimpleGlobe: React.FC = () => {
         .pointAltitude(() => 0.02)
         .pointRadius('size')
         .pointLabel('label')
-        .customThreeObject((d: any) => {
-          if (d.type === 'region') {
+        .customThreeObject((d: object) => {
+          if (typeof d === 'object' && d && 'type' in d && (d as Record<string, unknown>).type === 'region') {
+            const region = d as GlobePoint;
             const mesh = new THREE.Mesh(
-              new THREE.SphereGeometry(0.04, 16, 16),
-              new THREE.MeshStandardMaterial({ color: d.color, opacity: 0.7, transparent: true })
+              new THREE.SphereGeometry(0.055, 16, 16),
+              new THREE.MeshStandardMaterial({ color: region.color, opacity: 0.85, transparent: true, emissive: region.color, emissiveIntensity: 0.5 })
             );
-            mesh.userData = { label: d.label };
+            mesh.userData = { label: region.label };
             return mesh;
           }
           const dummy = new THREE.Object3D();
           dummy.visible = false;
           return dummy;
         })
-        .customThreeObjectUpdate((obj: any, d: any) => {
-          if (obj && d && d.type === 'region') {
-            obj.userData = { label: d.label };
+        .customThreeObjectUpdate((obj: THREE.Object3D, d: object) => {
+          if (obj && d && typeof d === 'object' && 'type' in d && (d as Record<string, unknown>).type === 'region') {
+            obj.userData = { label: (d as Record<string, unknown>).label };
           }
         })
-        .arcAltitude(() => 0.15)
-        .arcStroke(1.5)
-        .arcDashLength(0.4)
+        .arcAltitude(() => 0.19)
+        .arcStroke(2.8)
+        .arcDashLength(0.5)
         .arcDashGap(0.2)
         .arcDashInitialGap(() => Math.random())
-        .arcDashAnimateTime(2000)
-        .arcLabel('label');
+        .arcDashAnimateTime(1400)
+        .arcLabel('label')
+        .arcColor((arc: unknown) => {
+          if (arc && typeof arc === 'object' && 'color' in arc) {
+            return String((arc as { color: string }).color);
+          }
+          return '#fff';
+        });
     }
     // Clean up on unmount
     return () => {
       if (el) el.replaceChildren();
-      globeRef.current = null;
+      globeInstance.current = null;
     };
   }, []);
 
   // Only update data, not the globe instance
   useEffect(() => {
-    if (globeRef.current) {
-      globeRef.current
+    if (globeInstance.current) {
+      globeInstance.current
         .pointsData(serverPoints)
         .pointLat('lat')
         .pointLng('lng')
@@ -162,34 +176,34 @@ const SimpleGlobe: React.FC = () => {
 
   // Auto-rotate effect
   useEffect(() => {
-    if (globeRef.current && globeRef.current.controls) {
-      globeRef.current.controls().autoRotate = mapControls.autoRotate;
-      globeRef.current.controls().autoRotateSpeed = 0.5;
+    if (globeInstance.current && typeof globeInstance.current.controls === 'function') {
+      globeInstance.current.controls().autoRotate = mapControls.autoRotate;
+      globeInstance.current.controls().autoRotateSpeed = 0.5;
     }
   }, [mapControls.autoRotate]);
 
   // Grid overlay effect
   useEffect(() => {
-    if (globeRef.current && globeRef.current.scene) {
+    if (globeInstance.current && globeInstance.current.scene) {
       // Remove existing grid
-      const existing = globeRef.current.scene().getObjectByName('latlon-grid');
-      if (existing) globeRef.current.scene().remove(existing);
+      const existing = globeInstance.current.scene().getObjectByName('latlon-grid');
+      if (existing) globeInstance.current.scene().remove(existing);
       if (mapControls.showGrid) {
-        globeRef.current.scene().add(createLatLonGrid());
+        globeInstance.current.scene().add(createLatLonGrid());
       }
     }
   }, [mapControls.showGrid]);
 
   // Axis overlay effect
   useEffect(() => {
-    if (globeRef.current && globeRef.current.scene) {
+    if (globeInstance.current && globeInstance.current.scene) {
       // Remove existing axis
-      const existing = globeRef.current.scene().getObjectByName(AXIS_NAME);
-      if (existing) globeRef.current.scene().remove(existing);
+      const existing = globeInstance.current.scene().getObjectByName(AXIS_NAME);
+      if (existing) globeInstance.current.scene().remove(existing);
       if (mapControls.showAxis) {
         const axis = new THREE.AxesHelper(1.2);
         axis.name = AXIS_NAME;
-        globeRef.current.scene().add(axis);
+        globeInstance.current.scene().add(axis);
       }
     }
   }, [mapControls.showAxis]);
